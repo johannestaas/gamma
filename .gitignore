@@ -1,0 +1,36 @@
+# Binaries
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build/test artifacts
+*.test
+*.out
+*.cover
+coverage.out
+
+vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+
+# Environment files
+.env
+.env.*
+
+# My private notes
+/notes/
+NOTES
+notes.txt
+/ignore/

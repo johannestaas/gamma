@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+# Specific binary
+example-gamma-client
 
 # Go build/test artifacts
 *.test

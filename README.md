@@ -186,3 +186,13 @@ Chain it all together, and using just that binary you can simulate texas hold'em
 
 However you would want more tools to prevent cheating, validate hands, and prevent hallucinations... and actually
 shuffle and deal from a deck, or you might get a flop with two sevens of diamonds.
+
+Releases
+========
+
+    v0.2.0:
+        - adds and fixes function parameters
+        - adds example-multi-arg
+    v0.1.0:
+        - adds tool usage without function parameters
+        - adds example-gamma-client

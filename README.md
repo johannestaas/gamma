@@ -120,14 +120,18 @@ To provide tools to the LLM, this specification from before is provided as a `ga
         client := gamma.NewGammaClient(opts...)
         convo := client.NewConvo(*prompt)
         ...
-		ans := convo.Ask(ctx, "pull two cards for me face up")
+        ans := convo.Ask(ctx, "pull two cards for me face up")
 
 
 Here's how the example runs (it makes a comment without knowing what card it is yet):
 
     $ ./example-multi-arg-too
+
     time=2026-04-12T21:11:11.542-07:00 level=DEBUG msg="example gamma client starting"
-    time=2026-04-12T21:11:11.542-07:00 level=INFO msg="testing gamma client from CLI" root_url=http://localhost:11434 model=gemma4 prompt="You are a casino dealer with access to one tool to pull a random card. You play games with the user."
+    time=2026-04-12T21:11:11.542-07:00 level=INFO msg="testing gamma client from CLI"
+        root_url=http://localhost:11434
+        model=gemma4
+        prompt="You are a casino dealer with access to one tool to pull a random card. You play games with the user."
 
     Prompt (press enter twice to send message, q to quit):
         deal two cards to me face up like black jack,
@@ -146,18 +150,21 @@ Here's how the example runs (it makes a comment without knowing what card it is 
 
     **Plan:**
     1.  **User Card 1 (Face Up):** Call `card_puller` with `owner="user"`, `show_card=true`, and add a sly comment.
-    2.  **User Card 2 (Face Up):** Call `card_puller` with `owner="user"`, `show_card=true`, and add a sly comment. (This covers the two sly comments requirement).
+    2.  **User Card 2 (Face Up):** Call `card_puller` with `owner="user"`, `show_card=true`, and add a sly comment.
+        (This covers the two sly comments requirement).
     3.  **Dealer Card 1 (Face Down):** Call `card_puller` with `owner="dealer"`, `show_card=false`.
     4.  **Dealer Card 2 (Face Up):** Call `card_puller` with `owner="dealer"`, `show_card=true`.
 
     ...
 
 
-    *** Dealer made comment: "Let's see what kind of luck you're on today... I bet it's going to be less impressive than you think."
+    *** Dealer made comment:
+        "Let's see what kind of luck you're on today... I bet it's going to be less impressive than you think."
 
     *** "user" picked up a card: 9 of spades
 
-    *** Dealer made comment: "A perfect pair of openers! You're setting the tone, aren't ya? Keep it up."
+    *** Dealer made comment:
+        "A perfect pair of openers! You're setting the tone, aren't ya? Keep it up."
 
     *** "user" picked up a card: 7 of clubs
 
@@ -167,7 +174,8 @@ Here's how the example runs (it makes a comment without knowing what card it is 
 
 Chain it all together, and using just that binary you can simulate texas hold'em:
 
-    "Alright, looks like the action is closed for the pre-flop. You called, and I'll just take my turn, hoping this board is kind to us both. The dealer calls for the flop!"
+    "Alright, looks like the action is closed for the pre-flop. You called, and I'll just take my turn,
+    hoping this board is kind to us both. The dealer calls for the flop!"
 
     *** "flop" picked up a card: 7 of diamonds
 
@@ -175,4 +183,5 @@ Chain it all together, and using just that binary you can simulate texas hold'em
 
     *** "flop" picked up a card: 9 of diamonds
 
-However you would want more tools to prevent cheating, validate hands, and prevent hallucinations.
+However you would want more tools to prevent cheating, validate hands, and prevent hallucinations... and actually
+shuffle and deal from a deck, or you might get a flop with two sevens of diamonds.

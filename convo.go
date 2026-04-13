@@ -20,7 +20,7 @@ func (c *GammaClient) handleToolCalls(msg Message) (results []ToolCallResult) {
 				Call: tc,
 				Result: ToolResult{
 					Result: nil,
-					Error:  fmt.Errorf("missing tool: %q", tc.Function.Name),
+					Error:  fmt.Sprintf("missing tool: %q", tc.Function.Name),
 				},
 			}
 			slog.Warn("failed to find function", "function_name", tc.Function.Name)
@@ -94,6 +94,7 @@ func (convo *Convo) Ask(ctx context.Context, prompt string) <-chan StreamChunk {
 		}
 
 		data, err := json.Marshal(reqBody)
+		slog.Debug(fmt.Sprintf("Conversation request body: %+v\n", reqBody))
 		if err != nil {
 			out <- StreamChunk{Err: err}
 			return

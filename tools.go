@@ -2,14 +2,60 @@ package gamma
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 )
 
 // ToolResult provides the result and an optional error, mapping what go functions usually return into a single
 // struct so it can be easily JSON serializable.
 type ToolResult struct {
-	Result any
-	Error  error
+	Result any    `json:"result"`
+	Error  string `json:"error,omitempty"`
+}
+
+// ErrorToToolError takes an error and turns it into a `ToolResult` with that error, usable by the LLM.
+func ErrorToToolError(e error) ToolResult {
+	return ToolResult{
+		Error: e.Error(),
+	}
+}
+
+// StringToToolError takes an error string and generates a `ToolResult` with that error, usable by the LLM.
+func StringToToolError(s string) ToolResult {
+	return ToolResult{
+		Error: s,
+	}
+}
+
+// GetOptionalArg returns a pointer to the value for the tool call argument if it was provided, or a default value.
+// It errors out if the type coercion fails.
+func GetOptionalArg[T any](args map[string]any, key string, defaultValue T) (*T, bool, error) {
+	val, ok := args[key]
+	if !ok {
+		return &defaultValue, false, nil
+	}
+
+	typed, ok := val.(T)
+	if !ok {
+		return nil, false, fmt.Errorf("arg %q has wrong type: got %T", key, val)
+	}
+
+	return &typed, true, nil
+}
+
+// GetRequiredArg returns a required argument or errors if the type coercion fails.
+func GetRequiredArg[T any](args map[string]any, key string) (*T, error) {
+	val, ok := args[key]
+	if !ok {
+		return nil, fmt.Errorf("tool args did not have key %q", key)
+	}
+
+	typed, ok := val.(T)
+	if !ok {
+		return nil, fmt.Errorf("arg %q has wrong type: got %T", key, val)
+	}
+
+	return &typed, nil
 }
 
 // ToolFunc is a function that takes a map of args single parameter and returns a `ToolResult`, just any and an
@@ -20,7 +66,7 @@ type ToolFunc func(args map[string]any) ToolResult
 type ToolFuncDef struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description,omitempty"`
-	Parameters  map[string]any `json:"parameters,omitempty"`
+	Parameters  ToolParameters `json:"parameters"`
 }
 
 // ToolDef is the structure that ollama and most tool-using LLMs expect to see.
@@ -79,13 +125,68 @@ type CallableToolDef interface {
 	GetCallable() ToolFunc
 }
 
+type Property struct {
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+// NamedProperty is an explicitly named argument to a tool function property. You must provide the LLM with details
+// about how to use your tools, and each function argument.
+type NamedProperty struct {
+	Name        string
+	Type        string
+	Description string
+	Required    bool
+}
+
+type ToolParameters struct {
+	Type                 string              `json:"type"`
+	Properties           map[string]Property `json:"properties"`
+	Required             []string            `json:"required"`
+	AdditionalProperties bool                `json:"additionalProperties"`
+}
+
+// NewToolParameters provides the specification to the LLM for the tool's function's parameters.
+func NewToolParameters(namedProps ...NamedProperty) ToolParameters {
+	props := make(map[string]Property)
+	required := make([]string, 0)
+	for _, p := range namedProps {
+		if p.Required {
+			required = append(required, p.Name)
+		}
+		t := ""
+		switch p.Type {
+		case "string", "boolean", "number", "array", "object":
+			t = p.Type
+		case "integer", "float", "float32", "float64":
+			t = "number"
+		case "bool":
+			t = "boolean"
+		default:
+			// Panic might be a bit extreme, but I'd rather panic early if you aren't explicitly setting up the right
+			// API for the LLM.
+			panic(fmt.Sprintf("cant handle type %v %q, it must be a valid JSON type like 'number' or 'string'", p, p.Type))
+		}
+		props[p.Name] = Property{
+			Type:        t,
+			Description: p.Description,
+		}
+	}
+	return ToolParameters{
+		Type:                 "object",
+		Properties:           props,
+		Required:             required,
+		AdditionalProperties: false,
+	}
+}
+
 // CallableFunctionToolDef implements the base `CallableToolDef` interface so it can be provided as a tool with the
 // `WithTool` option.
 type CallableFunctionToolDef struct {
 	Name        string
 	Description string
 	Callable    ToolFunc
-	Parameters  map[string]any
+	Parameters  ToolParameters
 }
 
 // ToToolDef provides the tool definition when the client tracks a new tool.

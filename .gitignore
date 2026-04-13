@@ -9,6 +9,7 @@
 *.dylib
 # Specific binary
 example-gamma-client
+example-multi-arg-tool
 
 # Go build/test artifacts
 *.test

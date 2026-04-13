@@ -8,7 +8,7 @@ Quickstart
 
 Build the basic example at `cmd/example-gamma-client/main.go`
 
-    make example
+    make
 
 Run it:
 
@@ -42,7 +42,8 @@ Example is in: `cmd/example-multi-arg-tool/main.go`
 
 Run:
 
-    make example-multi-arg
+    make
+    ./example-multi-arg
 
 
 This allows you to specify parameters for the tool. Remember, every type is a json type, so it must be "string",
